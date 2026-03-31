@@ -72,6 +72,7 @@
 
     <div class="buttons">
         <button onclick="clearDisplay()" class="clear">C</button>
+        <button onclick="backspace()" class="clear">←</button>
         <button onclick="append('(')">(</button>
         <button onclick="append(')')">)</button>
         <button onclick="append('%')">%</button>
@@ -88,6 +89,7 @@
         <button onclick="append('6')">6</button>
         <button onclick="append('-')">−</button>
         <button onclick="append('Math.pow(')">xʸ</button>
+        <button onclick="insertFact()">n!</button>
 
         <button onclick="append('1')">1</button>
         <button onclick="append('2')">2</button>
@@ -111,6 +113,7 @@
     const display = document.getElementById("display");
 
     function append(value) {
+        if (display.value === "Error") display.value = "";
         display.value += value;
     }
 
@@ -118,12 +121,43 @@
         display.value = "";
     }
 
+    function backspace() {
+        display.value = display.value.slice(0, -1);
+    }
+
+    function formatExpression(expr) {
+        return expr
+            .replace(/×/g, "*")
+            .replace(/÷/g, "/")
+            .replace(/\bπ\b/g, "Math.PI")
+            .replace(/\be\b/g, "Math.E")
+            .replace(/%/g, "/100");
+    }
+
     function calculate() {
+        const raw = display.value;
+        if (!raw) return;
+
         try {
-            display.value = eval(display.value);
-        } catch {
+            const expression = formatExpression(raw);
+            // eslint-disable-next-line no-new-func
+            const result = Function("Math", `return ${expression}`)(Math);
+            display.value = (typeof result === 'number' && !Number.isFinite(result)) ? 'Error' : String(result);
+        } catch (err) {
+            console.error(err);
             display.value = "Error";
         }
+    }
+
+    function insertFact() {
+        const x = parseFloat(display.value);
+        if (Number.isNaN(x) || x < 0) {
+            display.value = "Error";
+            return;
+        }
+        let fact = 1;
+        for (let i = 1; i <= x; i++) fact *= i;
+        display.value = String(fact);
     }
 </script>
 
